@@ -25,17 +25,6 @@ def plot_job():
     print("thread finished")
     
 
-def move_figure(f, x, y):
-    """Move figure's upper left corner to pixel (x, y)"""
-    backend = matplotlib.get_backend()
-    if backend == 'TkAgg':
-        f.canvas.manager.window.wm_geometry("+%d+%d" % (x, y))
-    elif backend == 'WXAgg':
-        f.canvas.manager.window.SetPosition((x, y))
-    else:
-        # This works for QT and GTK
-        # You can also use window.setGeometry
-        f.canvas.manager.window.move(x, y)
 
 
 Fs = 25600.0;                   # sampling rate (Hz)
@@ -56,7 +45,7 @@ print(path)
 index=0
 tStart = time.time()#計時開始
 fig, axs = plt.subplots(4, 3,figsize = (fig_w, fig_h))
-move_figure(fig, fig_x, fig_y)
+
 tEnd = time.time()#計時結束
 print ("create fig cost %f sec" % (tEnd - tStart))
 '''
@@ -105,17 +94,25 @@ while(True):
         fp.close()
         tEnd = time.time()#計時結束
         print ("readfile cost %f sec" % (tEnd - tStart))
-
+        filename= os.path.join(path, "exhibition_peak_"+str(index)+".txt" )
+        fp = open(filename, "w")
+        for i in range(4):
+            fp.write(str(max(channels[i]))+"\n")
+        fp.close()
         ''' fft'''
         tStart = time.time()#計時開始
         freq_channels=[[],[],[],[]]
-
+        filename= os.path.join(path, "exhibition_fft_"+str(index)+".txt" )
+        fp = open(filename, "w")
         for i in range(channel_num):
             freq_channels[i]=abs(fft(channels[i]))
             freq_channels[i][:] = [x / Fs for x in freq_channels[i]]
             freq_channels[i]=freq_channels[i][range(int(Fs*T/2))]
             max_freq_channels[i].append(list(freq_channels[i]).index(max(freq_channels[i])))
+            fp.write(str(max_freq_channels[i][-1])+"\n")
             print(max_freq_channels[i])
+        fp.close()
+
         xf = np.arange(len(freq_channels[channel_num-1]))
         xf = xf[range(int(Fs*T/2))] #half interval
         tEnd = time.time()#計時結束
